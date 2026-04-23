@@ -126,6 +126,8 @@ set(CLP_SOURCES
   src/ClpGubMatrix.cpp
   src/CoinAbcOrderedFactorization1.cpp
   src/ClpPEPrimalColumnSteepest.cpp
+  src/ClpCholeskyBase.cpp
+  src/ClpCholeskyDense.cpp
   src/AbcSimplex.cpp
   src/Idiot.cpp
   src/IdiSolve.cpp
@@ -212,6 +214,8 @@ set(CLP_HEADERS
   src/ClpNetworkBasis.hpp
   src/ClpPlusMinusOneMatrix.hpp
   src/ClpDualRowDantzig.hpp
+  src/ClpCholeskyBase.hpp
+  src/ClpCholeskyDense.hpp
   src/Idiot.hpp
   src/MyEventHandler.hpp
   src/MyMessageHandler.hpp
