@@ -21,6 +21,7 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinTypes.h"
 #include "CoinFinite.hpp"
+#include "CoinMpsIO.hpp"
 #include "ClpModelParameters.hpp"
 #include "ClpObjective.hpp"
 
@@ -130,6 +131,12 @@ public:
   int readMps(const char *filename,
     bool keepNames = false,
     bool ignoreErrors = false);
+  /** Modify model to deal with indicators.
+      startBigM are values in input.
+      If bigM > 0.0 then use that,
+      if < 0.0 use but try and improve */
+  void modifyByIndicators(double startBigM=COIN_DBL_MAX,
+			  double bigM=1.0e7);
 #if defined(COINUTILS_HAS_GLPK) && defined(CLP_HAS_GLPK)
   /// Read GMPL files from the given filenames
   int readGMPL(const char *filename, const char *dataName, bool keepNames = false,
@@ -240,6 +247,8 @@ public:
     bool keepZero = false)
   {
     matrix_->modifyCoefficient(row, column, newElement, keepZero);
+    // Say matrix changed
+    whatsChanged_ &= ~15;
   }
   /** Change row lower bounds */
   void chgRowLower(const double *rowLower);
@@ -1178,7 +1187,6 @@ public:
 	 2097152 - ray even if >2 pivots AND if problem is "crunched" 
 	 4194304 - don't scale integer variables
 	 8388608 - Idiot when not really sure about it
-	 16777216 - zero costs!
          NOTE - many applications can call Clp but there may be some short cuts
                 which are taken which are not guaranteed safe from all applications.
                 Vetted applications will have a bit set and the code may test this
@@ -1187,7 +1195,9 @@ public:
                 if she/he needs these short cuts.  I will not debug unless in Coin
                 repository.  See COIN_CLP_VETTED comments.
          0x01000000 is Cbc (and in branch and bound)
-         0x02000000 is in a different branch and bound
+         0x02000000 is in a different branch and bound (or clp dual then primal)
+	 0x04000000 - zero costs!
+	 0x08000000 - get correct duals  on max iterations
      */
   inline unsigned int specialOptions() const
   {
@@ -1445,7 +1455,7 @@ public:
 };
 
 // Semi experimental options 
-#ifdef CLP_EXPERIMENT_JJF
+#if 1 //def CLP_EXPERIMENT_JJF
 #define CLP_CHECK_SCALING 1 // for badly scaled problems
 #define OSICLP_TUNING 10 // various switches
 #define CLP_MOVEMENT 2 // be more careful on pivot row in primal

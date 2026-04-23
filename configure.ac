@@ -48,6 +48,9 @@ AC_COIN_RPATH_FLAGS([$expanded_libdir])
 # Check for cmath/math.h, cfloat/float.h, cieeefp/ieeefp.h
 AC_COIN_CHECK_MATH_HDRS
 
+# Check for intrinsics header for ClpPackedMatrix.cpp
+AC_CHECK_HEADERS([immintrin.h intrin.h arm_neon.h fmaintrin.h],[break],[])
+
 #############################################################################
 #                              COIN-OR components                           #
 #############################################################################
@@ -167,6 +170,12 @@ AC_CONFIG_HEADERS([src/config.h src/config_clp.h])
 if test $coin_has_osi = yes ; then
   AC_CONFIG_HEADERS([src/OsiClp/config_osiclp.h])
 fi
+
+# Capture git revision for display in solver header
+AC_MSG_CHECKING([git revision])
+CLP_GIT_HASH=`cd $srcdir && (git describe --always --dirty 2>/dev/null || echo "unknown")`
+AC_MSG_RESULT([$CLP_GIT_HASH])
+AC_DEFINE_UNQUOTED([CLP_GIT_HASH], ["$CLP_GIT_HASH"], [Git hash at configure time])
 
 # Finally, we let configure write all the output...
 AC_COIN_FINALIZE

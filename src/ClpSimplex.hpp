@@ -360,8 +360,9 @@ public:
   int nonlinearSLP(int numberConstraints, ClpConstraint **constraints,
     int numberPasses, double deltaTolerance);
   /** Solves using barrier (assumes you have good cholesky factor code).
-         Does crossover to simplex if asked*/
-  int barrier(bool crossover = true);
+      Does crossover to simplex if asked.
+      startFinishOptions as dual/primal */
+  int barrier(bool crossover = true, int startFinishOptions = 0);
   /** Solves non-linear using reduced gradient.  Phase = 0 get feasible,
          =1 use solution */
   int reducedGradient(int phase = 0);
@@ -1437,7 +1438,10 @@ public:
 	 67108864 bit - try sorted values pass
 	 134217728 bit - clean up problem if scaling feasible mismatch
 	 268435456 bit - objective is piecewise linear
+	 536870912 bit - we are really in trouble (dual-primal-dual)
+	 1073741824 bit - we are really in trouble (primal-dual-primal)
   */
+
   inline int moreSpecialOptions() const
   {
     return moreSpecialOptions_;
@@ -1485,6 +1489,17 @@ public:
   inline void setVectorMode(int value)
   {
     vectorMode_ = value;
+  }
+  /** Maximum number of BLAS threads to use during LP solves (e.g. OpenBLAS).
+      -1 (default) means no restriction.  Set to 1 to prevent thread
+      multiplication when CBC is already running parallel B&B. */
+  inline int blasNumThreads() const
+  {
+    return blasNumThreads_;
+  }
+  inline void setBLASNumThreads(int num)
+  {
+    blasNumThreads_ = num;
   }
   //@}
   /**@name status methods */
@@ -1782,6 +1797,9 @@ protected:
   double bestObjectiveValue_;
   /// More special options - see set for details
   int moreSpecialOptions_;
+  /** Maximum BLAS threads during LP solves; -1 = no restriction.
+      When >= 0, openblas_set_num_threads() is called before each resolve(). */
+  int blasNumThreads_;
   /// Iteration when we entered dual or primal
   int baseIteration_;
   /// Vector mode - try and use vector instructions

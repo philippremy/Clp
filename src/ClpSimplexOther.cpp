@@ -165,7 +165,7 @@ void ClpSimplexOther::dualRanging(int numberCheck, const int *which,
             if (sequenceIncrease < numberColumns_ && integerType_[sequenceIncrease]) {
               // can improve
               double movement = (columnScale_ == NULL) ? 1.0 : rhsScale_ * inverseColumnScale_[sequenceIncrease];
-              costIncrease = CoinMax(fabs(djValue * movement), costIncrease);
+              costIncrease = std::max(fabs(djValue * movement), costIncrease);
             }
 #endif
           } else {
@@ -180,7 +180,7 @@ void ClpSimplexOther::dualRanging(int numberCheck, const int *which,
             if (sequenceDecrease < numberColumns_ && integerType_[sequenceDecrease]) {
               // can improve
               double movement = (columnScale_ == NULL) ? 1.0 : rhsScale_ * inverseColumnScale_[sequenceDecrease];
-              costDecrease = CoinMax(fabs(djValue * movement), costDecrease);
+              costDecrease = std::max(fabs(djValue * movement), costDecrease);
             }
           } else {
             costDecrease = 0.0;
@@ -200,13 +200,13 @@ void ClpSimplexOther::dualRanging(int numberCheck, const int *which,
       sequenceDecrease = iSequence;
       break;
     case atUpperBound:
-      costIncrease = CoinMax(0.0, -dj_[iSequence]);
+      costIncrease = std::max(0.0, -dj_[iSequence]);
       sequenceIncrease = iSequence;
       if (valueIncrease)
         valueIncrease[i] = primalRanging1(iSequence, iSequence);
       break;
     case atLowerBound:
-      costDecrease = CoinMax(0.0, dj_[iSequence]);
+      costDecrease = std::max(0.0, dj_[iSequence]);
       sequenceDecrease = iSequence;
       if (valueIncrease)
         valueDecrease[i] = primalRanging1(iSequence, iSequence);
@@ -402,7 +402,7 @@ void ClpSimplexOther::dualCbcRanging(int numberCheck, const int *whichColumn,
   double objValue = objectiveValue();
   double cutoff = dualObjectiveLimit();
   double gap = cutoff-objValue;
-  gap += 1.0e-5*CoinMax(fabs(cutoff),fabs(objValue));
+  gap += 1.0e-5*std::max(fabs(cutoff),fabs(objValue));
   memset(costIncreased,0,numberCheck*sizeof(double));
   memset(costDecreased,0,numberCheck*sizeof(double));
   for (i = 0; i < numberCheck; i++) {
@@ -471,7 +471,7 @@ void ClpSimplexOther::dualCbcRanging(int numberCheck, const int *whichColumn,
         if (iStatus) {
           double mult = multiplier[iStatus - 1];
           alpha = work[i] * mult;
-	  oldValue = CoinMax(dj_[iSequence] * mult,0.0);
+	  oldValue = std::max(dj_[iSequence] * mult,0.0);
 	  //assert (oldValue>-1.0e-5);
           if (alpha > 0.0) {
 	    value = oldValue - thetaDecrease * alpha;
@@ -588,7 +588,7 @@ void ClpSimplexOther::dualCbcRanging(int numberCheck, const int *whichColumn,
 	    if (iStatus) {
 	      double mult = multiplier[iStatus - 1];
 	      alpha = work[i] * mult;
-	      oldValue = CoinMax(dj_[iSequence] * mult,0.0);
+	      oldValue = std::max(dj_[iSequence] * mult,0.0);
 	      //assert (oldValue>-1.0e-5);
 	      if (alpha > 0.0) {
 	      } else {
@@ -681,7 +681,7 @@ void ClpSimplexOther::dualCbcRanging(int numberCheck, const int *whichColumn,
 	    if (iStatus) {
 	      double mult = multiplier[iStatus - 1];
 	      alpha = work[i] * mult;
-	      oldValue = CoinMax(dj_[iSequence] * mult,0.0);
+	      oldValue = std::max(dj_[iSequence] * mult,0.0);
 	      //assert (oldValue>-1.0e-5);
 	      if (alpha > 0.0) {
 		value = oldValue - thetaDecrease * alpha;
@@ -737,11 +737,11 @@ void ClpSimplexOther::dualCbcRanging(int numberCheck, const int *whichColumn,
   for (int i=0;i<numberCheck;i++) {
     if (costIncreased[i]>gap) {
       nIn++;
-      lIn = CoinMax(costIncreased[i],lIn);
+      lIn = std::max(costIncreased[i],lIn);
     }
     if (costDecreased[i]>gap) {
       nDe++;
-      lDe = CoinMax(costDecreased[i],lDe);
+      lDe = std::max(costDecreased[i],lDe);
     }
     if (costIncreased[i]>gap && costDecreased[i]>gap) {
       printf("col %d infeas both ways\n",whichColumn[i]);
@@ -789,8 +789,8 @@ void ClpSimplexOther::primalRanging(int numberCheck, const int *which,
     case isFree:
     case superBasic:
       // Easy
-      valueDecrease = CoinMax(0.0, upper_[iSequence] - solution_[iSequence]);
-      valueIncrease = CoinMax(0.0, solution_[iSequence] - lower_[iSequence]);
+      valueDecrease = std::max(0.0, upper_[iSequence] - solution_[iSequence]);
+      valueIncrease = std::max(0.0, solution_[iSequence] - lower_[iSequence]);
       sequenceDecrease = iSequence;
       sequenceIncrease = iSequence;
       break;
@@ -909,14 +909,14 @@ ClpSimplexOther::primalRanging1(int whichIn, int whichOther)
             double bound = lower_[iPivot];
             oldValue -= bound;
             if (oldValue - theta * alpha < 0.0) {
-              theta = CoinMax(0.0, oldValue / alpha);
+              theta = std::max(0.0, oldValue / alpha);
             }
           } else {
             // basic variable going towards upper bound
             double bound = upper_[iPivot];
             oldValue = oldValue - bound;
             if (oldValue - theta * alpha > 0.0) {
-              theta = CoinMax(0.0, oldValue / alpha);
+              theta = std::max(0.0, oldValue / alpha);
             }
           }
         }
@@ -985,7 +985,7 @@ void ClpSimplexOther::checkPrimalRatios(CoinIndexedVector *rowArray,
         oldValue -= bound;
         if (oldValue - theta_ * alpha < 0.0) {
           pivotRow_ = iRow;
-          theta_ = CoinMax(0.0, oldValue / alpha);
+          theta_ = std::max(0.0, oldValue / alpha);
         }
       } else {
         // basic variable going towards upper bound
@@ -993,7 +993,7 @@ void ClpSimplexOther::checkPrimalRatios(CoinIndexedVector *rowArray,
         oldValue = oldValue - bound;
         if (oldValue - theta_ * alpha > 0.0) {
           pivotRow_ = iRow;
-          theta_ = CoinMax(0.0, oldValue / alpha);
+          theta_ = std::max(0.0, oldValue / alpha);
         }
       }
     }
@@ -1019,8 +1019,8 @@ int ClpSimplexOther::writeBasis(const char *filename,
   bool writeValues,
   int formatType) const
 {
-  formatType = CoinMax(0, formatType);
-  formatType = CoinMin(2, formatType);
+  formatType = std::max(0, formatType);
+  formatType = std::min(2, formatType);
   if (!writeValues)
     formatType = 0;
   // See if INTEL if IEEE
@@ -1036,7 +1036,7 @@ int ClpSimplexOther::writeBasis(const char *filename,
     }
   }
 
-  char number[20];
+  char number[24];
   FILE *fp = fopen(filename, "w");
   if (!fp)
     return -1;
@@ -1225,8 +1225,8 @@ ClpSimplexOther::dualOfModel(double fractionRowRanges, double fractionColumnRang
   } else {
     return NULL;
   }
-  printf("would have %d free columns in primal, %d in dual\n",
-    numberFreeColumnsInPrimal, numberFreeColumnsInDual);
+  //printf("would have %d free columns in primal, %d in dual\n",
+  //  numberFreeColumnsInPrimal, numberFreeColumnsInDual);
   if (4 * (numberFreeColumnsInDual - numberFreeColumnsInPrimal) > numberColumns_ && fractionRowRanges < 1.0)
     return NULL; //dangerous (well anyway in dual)
   if (changed) {
@@ -1407,13 +1407,13 @@ int ClpSimplexOther::restoreFromDual(const ClpSimplex *dualProblem,
   int numberBasic = 0;
   int iRow, iColumn = 0;
   // Get number of extra rows from ranges
-  int numberExtraRows = 0;
-  for (iRow = 0; iRow < numberRows_; iRow++) {
-    if (rowLower_[iRow] > -SMALL_INFINITY && rowUpper_[iRow] < SMALL_INFINITY) {
-      if (rowUpper_[iRow] != rowLower_[iRow])
-        numberExtraRows++;
-    }
-  }
+  //int numberExtraRows = 0;
+  //for (iRow = 0; iRow < numberRows_; iRow++) {
+  //  if (rowLower_[iRow] > -SMALL_INFINITY && rowUpper_[iRow] < SMALL_INFINITY) {
+  //    if (rowUpper_[iRow] != rowLower_[iRow])
+  //      numberExtraRows++;
+  //  }
+  //}
   const double *objective = this->objective();
   const double *dualDual = dualProblem->dualRowSolution();
   const double *dualDj = dualProblem->dualColumnSolution();
@@ -1551,7 +1551,9 @@ int ClpSimplexOther::restoreFromDual(const ClpSimplex *dualProblem,
   }
   // now rows
   int kExtraRow = jColumn;
+#ifndef NDEBUG
   int numberRanges = 0;
+#endif
   for (iRow = 0; iRow < numberRows_; iRow++) {
     Status status = dualProblem->getColumnStatus(iRow);
     if (status == basic) {
@@ -1588,7 +1590,9 @@ int ClpSimplexOther::restoreFromDual(const ClpSimplex *dualProblem,
         }
       } else {
         // range
+#ifndef NDEBUG
         numberRanges++;
+#endif
         Status statusL = dualProblem->getColumnStatus(kExtraRow);
         //printf("range row %d (%d), extra %d (%d) - dualSol %g,%g dualDj %g,%g\n",
         //     iRow,status,kExtraRow,statusL, dualSol[iRow],
@@ -1771,6 +1775,19 @@ ClpSimplex *
 ClpSimplexOther::crunch(double *rhs, int *whichRow, int *whichColumn,
   int &nBound, bool moreBounds, bool tightenBounds)
 {
+#if 1
+  /* If you only want to find redundant rows before fathom then
+     use this and set numberRows_ negative before this call (in ClpSimplex.cpp)
+  */
+  bool takeOutSome=false;
+  if (numberRows_<0) {
+    numberRows_ = -numberRows_;
+    takeOutSome=true;
+  }
+#else
+  assert (numberRows_>=0);
+  bool takeOutSome=true;
+#endif
   //#define CHECK_STATUS
 #ifdef CHECK_STATUS
   {
@@ -1790,7 +1807,21 @@ ClpSimplexOther::crunch(double *rhs, int *whichRow, int *whichColumn,
   const int *row = matrix_->getIndices();
   const CoinBigIndex *columnStart = matrix_->getVectorStarts();
   const int *columnLength = matrix_->getVectorLengths();
-
+  char * flags = NULL;
+  double * maxdown = NULL;
+  double * maxup = NULL;
+  if (takeOutSome) {
+    flags = new char [numberRows_];
+    maxdown = new double [2*numberRows_];
+    maxup = maxdown+numberRows_;
+    for (int i=0;i<numberRows_;i++) {
+      if (getRowStatus(i)==ClpSimplex::basic)
+	flags[i] = 0;
+      else
+	flags[i]=3;
+    }
+    memset(maxdown,0,2*sizeof(double)*numberRows_);
+  }
   CoinZeroN(rhs, numberRows_);
   int iColumn;
   int iRow;
@@ -1801,41 +1832,127 @@ ClpSimplexOther::crunch(double *rhs, int *whichRow, int *whichColumn,
   double offset = 0.0;
   const double *objective = this->objective();
   double *solution = columnActivity_;
-  for (iColumn = 0; iColumn < numberColumns_; iColumn++) {
-    double lower = columnLower_[iColumn];
-    double upper = columnUpper_[iColumn];
-    if (upper > lower || getColumnStatus(iColumn) == ClpSimplex::basic) {
-      backColumn[iColumn] = numberColumns2;
-      whichColumn[numberColumns2++] = iColumn;
-      for (CoinBigIndex j = columnStart[iColumn];
-           j < columnStart[iColumn] + columnLength[iColumn]; j++) {
-        int iRow = row[j];
-        int n = whichRow[iRow];
-        if (n == 0 && element[j])
-          whichRow[iRow] = -iColumn - 1;
-        else if (n < 0)
-          whichRow[iRow] = 2;
+  if (!takeOutSome) {
+    for (iColumn = 0; iColumn < numberColumns_; iColumn++) {
+      double lower = columnLower_[iColumn];
+      double upper = columnUpper_[iColumn];
+      if (upper > lower || getColumnStatus(iColumn) == ClpSimplex::basic) {
+	backColumn[iColumn] = numberColumns2;
+	whichColumn[numberColumns2++] = iColumn;
+	for (CoinBigIndex j = columnStart[iColumn];
+	     j < columnStart[iColumn] + columnLength[iColumn]; j++) {
+	  int iRow = row[j];
+	  int n = whichRow[iRow];
+	  if (n == 0 && element[j])
+	    whichRow[iRow] = -iColumn - 1;
+	  else if (n < 0)
+	    whichRow[iRow] = 2;
+	}
+      } else {
+	// fixed
+	backColumn[iColumn] = -1;
+	solution[iColumn] = upper;
+	if (upper) {
+	  offset += objective[iColumn] * upper;
+	  for (CoinBigIndex j = columnStart[iColumn];
+	       j < columnStart[iColumn] + columnLength[iColumn]; j++) {
+	    int iRow = row[j];
+	    double value = element[j];
+	    rhs[iRow] += upper * value;
+	  }
+	}
       }
-    } else {
-      // fixed
-      backColumn[iColumn] = -1;
-      solution[iColumn] = upper;
-      if (upper) {
-        offset += objective[iColumn] * upper;
-        for (CoinBigIndex j = columnStart[iColumn];
-             j < columnStart[iColumn] + columnLength[iColumn]; j++) {
-          int iRow = row[j];
-          double value = element[j];
-          rhs[iRow] += upper * value;
-        }
+    }
+  } else {
+    for (iColumn = 0; iColumn < numberColumns_; iColumn++) {
+      double lower = columnLower_[iColumn];
+      double upper = columnUpper_[iColumn];
+      if (upper > lower || getColumnStatus(iColumn) == ClpSimplex::basic) {
+	backColumn[iColumn] = numberColumns2;
+	whichColumn[numberColumns2++] = iColumn;
+	for (CoinBigIndex j = columnStart[iColumn];
+	     j < columnStart[iColumn] + columnLength[iColumn]; j++) {
+	  int iRow = row[j];
+	  double value = element[j];
+	  if (value<0.0) {
+	    if (upper < 1.0e12) 
+	      maxdown[iRow] += upper * value;
+	    else
+	      flags[iRow] |= 1;;
+	    if (lower > -1.0e12) 
+	      maxup[iRow] += lower * value;
+	    else
+	      flags[iRow] |= 2;;
+	  } else {
+	    if (upper < 1.0e12) 
+	      maxup[iRow] += upper * value;
+	    else
+	      flags[iRow] |= 2;;
+	    if (lower > -1.0e12) 
+	      maxdown[iRow] += lower * value;
+	    else
+	      flags[iRow] |= 1;;
+	  }
+	  int n = whichRow[iRow];
+	  if (n == 0 && element[j])
+	    whichRow[iRow] = -iColumn - 1;
+	  else if (n < 0)
+	    whichRow[iRow] = 2;
+	}
+      } else {
+	// fixed
+	backColumn[iColumn] = -1;
+	solution[iColumn] = upper;
+	if (upper) {
+	  offset += objective[iColumn] * upper;
+	  for (CoinBigIndex j = columnStart[iColumn];
+	       j < columnStart[iColumn] + columnLength[iColumn]; j++) {
+	    int iRow = row[j];
+	    double value = element[j];
+	    rhs[iRow] += upper * value;
+	    maxup[iRow] += upper * value;
+	    maxdown[iRow] += upper * value;
+	  }
+	}
       }
     }
   }
   int returnCode = 0;
   double tolerance = primalTolerance();
   nBound = 2 * numberRows_;
+  //#define PRINT_AB
+#ifdef PRINT_AB
+  static int abcdef1 = 0;
+  static int abcdef2 = 0;
+  static int abcdef3 = 0;
+  bool anyDropped = false;
+  abcdef1++;
+#endif
   for (iRow = 0; iRow < numberRows_; iRow++) {
     int n = whichRow[iRow];
+    if (takeOutSome) {
+      // check if redundant
+      bool redundant = true;
+      double rowBound = rowLower_[iRow];
+      if (rowBound>-1.0e100) {
+	if ((flags[iRow]&1)!=0||maxdown[iRow]<rowBound-1.0e-9)
+	  redundant = false;
+      }
+      if (redundant) {
+	rowBound = rowUpper_[iRow];
+	if (rowBound<1.0e100) {
+	  if ((flags[iRow]&2)!=0||maxup[iRow]>rowBound+1.0e-9)
+	    redundant = false;
+	}
+      }
+      if (redundant) {
+#ifdef PRINT_AB
+	abcdef2++;
+	anyDropped= true;
+#endif
+	continue; // ignore
+      }
+    }
     if (n > 0) {
       whichRow[numberRows2++] = iRow;
     } else if (n < 0) {
@@ -1860,6 +1977,17 @@ ClpSimplexOther::crunch(double *rhs, int *whichRow, int *whichColumn,
         returnCode = 1; // infeasible
       }
     }
+  }
+#ifdef PRINT_AB
+  if (anyDropped)
+    abcdef3++;
+  if ((abcdef1%1000)==0)
+    printf("crunch %d times, %d dropped in %d occasions\n",
+	   abcdef1,abcdef2,abcdef3);
+#endif
+  if (takeOutSome) {
+    delete [] flags;
+    delete [] maxdown;
   }
   ClpSimplex *small = NULL;
   if (!returnCode) {
@@ -1955,14 +2083,14 @@ ClpSimplexOther::crunch(double *rhs, int *whichRow, int *whichColumn,
         else
           newUpper = floor(newUpper);
       }
-      newLower = CoinMax(lower, newLower);
-      newUpper = CoinMin(upper, newUpper);
+      newLower = std::max(lower, newLower);
+      newUpper = std::min(upper, newUpper);
       if (newLower > newUpper + tolerance) {
         //printf("XXYY inf on bound\n");
         returnCode = 1;
       }
       columnLower2[jColumn] = newLower;
-      columnUpper2[jColumn] = CoinMax(newLower, newUpper);
+      columnUpper2[jColumn] = std::max(newLower, newUpper);
       if (getRowStatus(iRow) != ClpSimplex::basic) {
         if (getColumnStatus(iColumn) == ClpSimplex::basic) {
           if (columnLower2[jColumn] == columnUpper2[jColumn]) {
@@ -2032,21 +2160,21 @@ ClpSimplexOther::crunch(double *rhs, int *whichRow, int *whichColumn,
           feasible = false;
           break;
         } else {
-          lo[iRow] = CoinMin(lower - rowUpper2[iRow], 0.0) - tolerance;
+          lo[iRow] = std::min(lower - rowUpper2[iRow], 0.0) - tolerance;
         }
         double upper = up[iRow];
         if (upper < rowLower2[iRow] - tolerance) {
           feasible = false;
           break;
         } else {
-          up[iRow] = CoinMax(upper - rowLower2[iRow], 0.0) + tolerance;
+          up[iRow] = std::max(upper - rowLower2[iRow], 0.0) + tolerance;
         }
         // tighten row bounds
         if (lower > -1.0e10)
-          rowLower2[iRow] = CoinMax(rowLower2[iRow],
+          rowLower2[iRow] = std::max(rowLower2[iRow],
             lower - 1.0e-6 * (1.0 + fabs(lower)));
         if (upper < 1.0e10)
-          rowUpper2[iRow] = CoinMin(rowUpper2[iRow],
+          rowUpper2[iRow] = std::min(rowUpper2[iRow],
             upper + 1.0e-6 * (1.0 + fabs(upper)));
       }
       if (!feasible) {
@@ -2068,20 +2196,20 @@ ClpSimplexOther::crunch(double *rhs, int *whichRow, int *whichColumn,
                 if (value > 0.0) {
                   double upWithOut = up[iRow] - value * difference;
                   if (upWithOut < 0.0) {
-                    newLower = CoinMax(newLower, lower - (upWithOut + tolerance) / value);
+                    newLower = std::max(newLower, lower - (upWithOut + tolerance) / value);
                   }
                   double lowWithOut = lo[iRow] + value * difference;
                   if (lowWithOut > 0.0) {
-                    newUpper = CoinMin(newUpper, upper - (lowWithOut - tolerance) / value);
+                    newUpper = std::min(newUpper, upper - (lowWithOut - tolerance) / value);
                   }
                 } else {
                   double upWithOut = up[iRow] + value * difference;
                   if (upWithOut < 0.0) {
-                    newUpper = CoinMin(newUpper, upper - (upWithOut + tolerance) / value);
+                    newUpper = std::min(newUpper, upper - (upWithOut + tolerance) / value);
                   }
                   double lowWithOut = lo[iRow] - value * difference;
                   if (lowWithOut > 0.0) {
-                    newLower = CoinMax(newLower, lower - (lowWithOut - tolerance) / value);
+                    newLower = std::max(newLower, lower - (lowWithOut - tolerance) / value);
                   }
                 }
               }
@@ -2172,6 +2300,10 @@ ClpSimplexOther::crunch(double *rhs, int *whichRow, int *whichColumn,
     assert(n == small->numberRows());
   }
 #endif
+  if (small) {
+    ClpPackedMatrix * matrix = static_cast<ClpPackedMatrix *>(small->clpMatrix());
+    matrix->specialColumnCopy(small); // vector copy?
+  }
   return small;
 }
 /* After very cursory presolve.
@@ -2256,6 +2388,8 @@ void ClpSimplexOther::afterCrunch(const ClpSimplex &small,
           assert (n == numberRows);
      }
 #endif
+     // be on safe side
+     computeObjectiveValue();
 }
 /* Tightens integer bounds - returns number tightened or -1 if infeasible
  */
@@ -2309,14 +2443,14 @@ int ClpSimplexOther::tightenIntegerBounds(double *rhsSpace)
       feasible = false;
       break;
     } else {
-      lo[iRow] = CoinMin(lower - rowUpper_[iRow], 0.0) - tolerance;
+      lo[iRow] = std::min(lower - rowUpper_[iRow], 0.0) - tolerance;
     }
     double upper = up[iRow];
     if (upper < rowLower_[iRow] - tolerance) {
       feasible = false;
       break;
     } else {
-      up[iRow] = CoinMax(upper - rowLower_[iRow], 0.0) + tolerance;
+      up[iRow] = std::max(upper - rowLower_[iRow], 0.0) + tolerance;
     }
   }
   int numberTightened = 0;
@@ -2339,20 +2473,20 @@ int ClpSimplexOther::tightenIntegerBounds(double *rhsSpace)
             if (value > 0.0) {
               double upWithOut = up[iRow] - value * difference;
               if (upWithOut < 0.0) {
-                newLower = CoinMax(newLower, lower - (upWithOut + tolerance) / value);
+                newLower = std::max(newLower, lower - (upWithOut + tolerance) / value);
               }
               double lowWithOut = lo[iRow] + value * difference;
               if (lowWithOut > 0.0) {
-                newUpper = CoinMin(newUpper, upper - (lowWithOut - tolerance) / value);
+                newUpper = std::min(newUpper, upper - (lowWithOut - tolerance) / value);
               }
             } else {
               double upWithOut = up[iRow] + value * difference;
               if (upWithOut < 0.0) {
-                newUpper = CoinMin(newUpper, upper - (upWithOut + tolerance) / value);
+                newUpper = std::min(newUpper, upper - (upWithOut + tolerance) / value);
               }
               double lowWithOut = lo[iRow] - value * difference;
               if (lowWithOut > 0.0) {
-                newLower = CoinMax(newLower, lower - (lowWithOut - tolerance) / value);
+                newLower = std::max(newLower, lower - (lowWithOut - tolerance) / value);
               }
             }
           }
@@ -2515,7 +2649,7 @@ int ClpSimplexOther::parametrics(double startingTheta, double &endingTheta, doub
       }
       if (maxTheta < endingTheta) {
         char line[100];
-        sprintf(line, "Crossover considerations reduce ending  theta from %g to %g\n",
+        snprintf(line, sizeof(line), "Crossover considerations reduce ending  theta from %g to %g\n",
           endingTheta, maxTheta);
         handler_->message(CLP_GENERAL, messages_)
           << line << CoinMessageEol;
@@ -2596,9 +2730,9 @@ int ClpSimplexOther::parametrics(double startingTheta, double &endingTheta, doub
         // tweak
         if (cleanedUp == 1) {
           if (!reportIncrement)
-            startingTheta = CoinMin(startingTheta + 1.0e-5, saveEndingTheta);
+            startingTheta = std::min(startingTheta + 1.0e-5, saveEndingTheta);
           else
-            startingTheta = CoinMin(startingTheta + reportIncrement, saveEndingTheta);
+            startingTheta = std::min(startingTheta + reportIncrement, saveEndingTheta);
         } else {
           // restoring to go slowly
           startingTheta = saveStartingTheta;
@@ -2627,7 +2761,7 @@ int ClpSimplexOther::parametrics(double startingTheta, double &endingTheta, doub
         copyModel.dual();
         if (copyModel.problemStatus()) {
           char line[100];
-          sprintf(line, "Can not get to theta of %g\n", startingTheta);
+          snprintf(line, sizeof(line), "Can not get to theta of %g\n", startingTheta);
           handler_->message(CLP_GENERAL, messages_)
             << line << CoinMessageEol;
           canTryQuick = false; // do slowly to get exact amount
@@ -2652,7 +2786,7 @@ int ClpSimplexOther::parametrics(double startingTheta, double &endingTheta, doub
   }
   perturbation_ = savePerturbation;
   char line[100];
-  sprintf(line, "Ending theta %g\n", endingTheta);
+  snprintf(line, sizeof(line), "Ending theta %g\n", endingTheta);
   handler_->message(CLP_GENERAL, messages_)
     << line << CoinMessageEol;
   return problemStatus_;
@@ -2664,15 +2798,15 @@ int ClpSimplexOther::parametrics(const char *dataFile)
 {
   int returnCode = -2;
   FILE *fp = fopen(dataFile, "r");
-  char line[200];
+  char line[260];
   if (!fp) {
     handler_->message(CLP_UNABLE_OPEN, messages_)
       << dataFile << CoinMessageEol;
     return -2;
   }
 
-  if (!fgets(line, 200, fp)) {
-    sprintf(line, "Empty parametrics file %s?", dataFile);
+  if (!fgets(line, sizeof(line), fp)) {
+    snprintf(line, sizeof(line), "Empty parametrics file %s?", dataFile);
     handler_->message(CLP_GENERAL, messages_)
       << line << CoinMessageEol;
     fclose(fp);
@@ -2748,14 +2882,15 @@ int ClpSimplexOther::parametrics(const char *dataFile)
   if (intervalTheta >= endTheta)
     intervalTheta = 0.0;
   if (!good) {
-    sprintf(line, "Odd first line %s on file %s?", line, dataFile);
+    char line2[330];
+    snprintf(line2, sizeof(line2), "Odd first line %s on file %s?", line, dataFile);
     handler_->message(CLP_GENERAL, messages_)
-      << line << CoinMessageEol;
+      << line2 << CoinMessageEol;
     fclose(fp);
     return -2;
   }
-  if (!fgets(line, 200, fp)) {
-    sprintf(line, "Not enough records on parametrics file %s?", dataFile);
+  if (!fgets(line, sizeof(line), fp)) {
+    snprintf(line, sizeof(line), "Not enough records on parametrics file %s?", dataFile);
     handler_->message(CLP_GENERAL, messages_)
       << line << CoinMessageEol;
     fclose(fp);
@@ -2837,9 +2972,9 @@ int ClpSimplexOther::parametrics(const char *dataFile)
       upperRowMove = new double[numberRows_];
       memset(upperRowMove, 0, numberRows_ * sizeof(double));
       int nLine = 0;
-      int nBadLine = 0;
+      //int nBadLine = 0;
       int nBadName = 0;
-      while (fgets(line, 200, fp)) {
+      while (fgets(line, sizeof(line), fp)) {
         if (!strncmp(line, "ENDATA", 6) || !strncmp(line, "COLUMN", 6))
           break;
         nLine++;
@@ -2862,7 +2997,7 @@ int ClpSimplexOther::parametrics(const char *dataFile)
           if (comma) {
             *comma = '\0';
           } else if (i < nAcross - 1) {
-            nBadLine++;
+            //nBadLine++;
             break;
           }
           switch (orderRow[i]) {
@@ -2916,11 +3051,11 @@ int ClpSimplexOther::parametrics(const char *dataFile)
             strcpy(saveLine, line);
         }
       }
-      sprintf(line, "%d Row fields and %d records", nAcross, nLine);
+      snprintf(line, sizeof(line), "%d Row fields and %d records", nAcross, nLine);
       handler_->message(CLP_GENERAL, messages_)
         << line << CoinMessageEol;
       if (nBadName) {
-        sprintf(line, " ** %d records did not match on name/sequence, first bad %s", nBadName, saveLine);
+        snprintf(line, sizeof(line), " ** %d records did not match on name/sequence, first bad %s", nBadName, saveLine);
         handler_->message(CLP_GENERAL, messages_)
           << line << CoinMessageEol;
         returnCode = -1;
@@ -2931,7 +3066,7 @@ int ClpSimplexOther::parametrics(const char *dataFile)
       }
       delete[] rowNames;
     } else {
-      sprintf(line, "Duplicate or unknown keyword - or name/number fields wrong");
+      snprintf(line, sizeof(line), "Duplicate or unknown keyword - or name/number fields wrong");
       handler_->message(CLP_GENERAL, messages_)
         << line << CoinMessageEol;
       returnCode = -1;
@@ -2939,8 +3074,8 @@ int ClpSimplexOther::parametrics(const char *dataFile)
     }
   }
   if (good && (!strncmp(line, "COLUMN", 6) || !strncmp(line, "column", 6))) {
-    if (!fgets(line, 200, fp)) {
-      sprintf(line, "Not enough records on parametrics file %s after COLUMNS?", dataFile);
+    if (!fgets(line, sizeof(line), fp)) {
+      snprintf(line, sizeof(line), "Not enough records on parametrics file %s after COLUMNS?", dataFile);
       handler_->message(CLP_GENERAL, messages_)
         << line << CoinMessageEol;
       fclose(fp);
@@ -3009,9 +3144,9 @@ int ClpSimplexOther::parametrics(const char *dataFile)
         objectiveMove = new double[numberColumns_];
         memset(objectiveMove, 0, numberColumns_ * sizeof(double));
         int nLine = 0;
-        int nBadLine = 0;
+        //int nBadLine = 0;
         int nBadName = 0;
-        while (fgets(line, 200, fp)) {
+        while (fgets(line, sizeof(line), fp)) {
           if (!strncmp(line, "ENDATA", 6))
             break;
           nLine++;
@@ -3035,7 +3170,7 @@ int ClpSimplexOther::parametrics(const char *dataFile)
             if (comma) {
               *comma = '\0';
             } else if (i < nAcross - 1) {
-              nBadLine++;
+              //nBadLine++;
               break;
             }
             switch (orderColumn[i]) {
@@ -3090,11 +3225,11 @@ int ClpSimplexOther::parametrics(const char *dataFile)
               strcpy(saveLine, line);
           }
         }
-        sprintf(line, "%d Column fields and %d records", nAcross, nLine);
+        snprintf(line, sizeof(line), "%d Column fields and %d records", nAcross, nLine);
         handler_->message(CLP_GENERAL, messages_)
           << line << CoinMessageEol;
         if (nBadName) {
-          sprintf(line, " ** %d records did not match on name/sequence, first bad %s", nBadName, saveLine);
+          snprintf(line, sizeof(line), " ** %d records did not match on name/sequence, first bad %s", nBadName, saveLine);
           handler_->message(CLP_GENERAL, messages_)
             << line << CoinMessageEol;
           returnCode = -1;
@@ -3105,7 +3240,7 @@ int ClpSimplexOther::parametrics(const char *dataFile)
         }
         delete[] columnNames;
       } else {
-        sprintf(line, "Duplicate or unknown keyword - or name/number fields wrong");
+        snprintf(line, sizeof(line), "Duplicate or unknown keyword - or name/number fields wrong");
         handler_->message(CLP_GENERAL, messages_)
           << line << CoinMessageEol;
         returnCode = -1;
@@ -3214,7 +3349,7 @@ int ClpSimplexOther::parametricsLoop(parametricsData &paramData, double reportIn
   // For this crude version just try and go to end
   double change = 0.0;
   if (reportIncrement && canTryQuick) {
-    endingTheta = CoinMin(endingTheta, startingTheta + reportIncrement);
+    endingTheta = std::min(endingTheta, startingTheta + reportIncrement);
     change = endingTheta - startingTheta;
   }
   int numberTotal = numberRows_ + numberColumns_;
@@ -3485,7 +3620,7 @@ int ClpSimplexOther::parametrics(double startingTheta, double &endingTheta,
     objective_->setType(1);
     if (!returnCode) {
       double saveDualBound = dualBound_;
-      dualBound_ = CoinMax(dualBound_, 1.0e15);
+      dualBound_ = std::max(dualBound_, 1.0e15);
       swapped = true;
       double *temp;
       memcpy(saveLower, lower_, numberTotal * sizeof(double));
@@ -3661,7 +3796,7 @@ int ClpSimplexOther::parametrics(double startingTheta, double &endingTheta,
   delete rowArray_[5];
   rowArray_[5] = NULL;
   char line[100];
-  sprintf(line, "Ending theta %g\n", endingTheta);
+  snprintf(line, sizeof(line), "Ending theta %g\n", endingTheta);
   handler_->message(CLP_GENERAL, messages_)
     << line << CoinMessageEol;
   return problemStatus_;
@@ -3900,7 +4035,7 @@ void ClpSimplexOther::statusOfProblemInParametrics(int type, ClpDataSave &saveDa
     return;
   } else if (largestPrimalError_ < 1.0e-7 && largestDualError_ < 1.0e-7) {
     // Can reduce tolerance
-    double newTolerance = CoinMax(0.99 * factorization_->pivotTolerance(), saveData.pivotTolerance_);
+    double newTolerance = std::max(0.99 * factorization_->pivotTolerance(), saveData.pivotTolerance_);
     factorization_->pivotTolerance(newTolerance);
   }
   // Check if looping
@@ -4044,7 +4179,7 @@ int ClpSimplexOther::whileIterating(parametricsData &paramData, double /*reportI
   }
   // if can't trust much and long way from optimal then relax
   if (largestPrimalError_ > 10.0)
-    factorization_->relaxAccuracyCheck(CoinMin(1.0e2, largestPrimalError_ / 10.0));
+    factorization_->relaxAccuracyCheck(std::min(1.0e2, largestPrimalError_ / 10.0));
   else
     factorization_->relaxAccuracyCheck(1.0);
   // status stays at -1 while iterating, >=0 finished, -2 to invert
@@ -4053,7 +4188,7 @@ int ClpSimplexOther::whileIterating(parametricsData &paramData, double /*reportI
   double lastTheta = startingTheta;
   double useTheta = startingTheta;
   while (problemStatus_ == -1) {
-    double increaseTheta = CoinMin(endingTheta - lastTheta, 1.0e50);
+    double increaseTheta = std::min(endingTheta - lastTheta, 1.0e50);
     // Get theta for bounds - we know can't crossover
     int pivotType = nextTheta(1, increaseTheta, paramData,
       NULL);
@@ -4210,7 +4345,7 @@ int ClpSimplexOther::whileIterating(parametricsData &paramData, double /*reportI
         double checkValue = 1.0e-7;
         // if can't trust much and long way from optimal then relax
         if (largestPrimalError_ > 10.0)
-          checkValue = CoinMin(1.0e-4, 1.0e-8 * largestPrimalError_);
+          checkValue = std::min(1.0e-4, 1.0e-8 * largestPrimalError_);
         if (fabs(btranAlpha) < 1.0e-12 || fabs(alpha_) < 1.0e-12 || fabs(btranAlpha - alpha_) > checkValue * (1.0 + fabs(alpha_))) {
           handler_->message(CLP_DUAL_CHECK, messages_)
             << btranAlpha
@@ -4265,7 +4400,7 @@ int ClpSimplexOther::whileIterating(parametricsData &paramData, double /*reportI
         //rowArray_[0]->cleanAndPackSafe(1.0e-60);
         //columnArray_[0]->cleanAndPackSafe(1.0e-60);
 #if CLP_CAN_HAVE_ZERO_OBJ
-        if ((specialOptions_ & 16777216) == 0) {
+        if ((specialOptions_ & 0x04000000) == 0) {
 #endif
           nswapped = reinterpret_cast< ClpSimplexDual * >(this)->updateDualsInDual(rowArray_[0], columnArray_[0],
             rowArray_[2], theta_,
@@ -4445,7 +4580,7 @@ int ClpSimplexOther::whileIterating(parametricsData &paramData, double /*reportI
         }
         // update primal solution
 #if CLP_CAN_HAVE_ZERO_OBJ
-        if ((specialOptions_ & 16777216) != 0)
+        if ((specialOptions_ & 0x04000000) != 0)
           theta_ = 0.0;
 #endif
         if (theta_ < 0.0) {
@@ -4514,7 +4649,7 @@ int ClpSimplexOther::whileIterating(parametricsData &paramData, double /*reportI
         }
         objectiveChange = 0.0;
 #if CLP_CAN_HAVE_ZERO_OBJ
-        if ((specialOptions_ & 16777216) == 0) {
+        if ((specialOptions_ & 0x04000000) == 0) {
 #endif
           for (int i = 0; i < numberTotal; i++)
             objectiveChange += solution_[i] * cost_[i];
@@ -4532,7 +4667,7 @@ int ClpSimplexOther::whileIterating(parametricsData &paramData, double /*reportI
           dj_[sequenceOut_] = theta_;
 #if CLP_CAN_HAVE_ZERO_OBJ > 1
 #ifdef COIN_REUSE_RANDOM
-          if ((specialOptions_ & 16777216) != 0) {
+          if ((specialOptions_ & 0x04000000) != 0) {
             dj_[sequenceOut_] = 1.0e-9 * (1.0 + CoinDrand48());
             ;
           }
@@ -4543,7 +4678,7 @@ int ClpSimplexOther::whileIterating(parametricsData &paramData, double /*reportI
           dj_[sequenceOut_] = -theta_;
 #if CLP_CAN_HAVE_ZERO_OBJ > 1
 #ifdef COIN_REUSE_RANDOM
-          if ((specialOptions_ & 16777216) != 0) {
+          if ((specialOptions_ & 0x04000000) != 0) {
             dj_[sequenceOut_] = -1.0e-9 * (1.0 + CoinDrand48());
             ;
           }
@@ -4847,7 +4982,7 @@ int ClpSimplexOther::whileIterating(parametricsData &paramData, double /*reportI
                 returnCode = -2;
                 // Force to re-factorize early next time
                 int numberPivots = factorization_->pivots();
-                forceFactorization_ = CoinMin(forceFactorization_, (numberPivots + 1) >> 1);
+                forceFactorization_ = std::min(forceFactorization_, (numberPivots + 1) >> 1);
               }
             }
           }
@@ -4857,7 +4992,7 @@ int ClpSimplexOther::whileIterating(parametricsData &paramData, double /*reportI
         returnCode = -2;
         // Force to re-factorize early next time
         int numberPivots = factorization_->pivots();
-        forceFactorization_ = CoinMin(forceFactorization_, (numberPivots + 1) >> 1);
+        forceFactorization_ = std::min(forceFactorization_, (numberPivots + 1) >> 1);
       }
       break;
     }
@@ -4878,9 +5013,9 @@ ClpSimplexOther::computeRhsEtc(parametricsData &paramData)
     double lower = rowLower_[iRow];
     double upper = rowUpper_[iRow];
     double chgLower = lowerChange[numberColumns_ + iRow];
-    largestChange = CoinMax(largestChange, fabs(chgLower));
+    largestChange = std::max(largestChange, fabs(chgLower));
     double chgUpper = upperChange[numberColumns_ + iRow];
-    largestChange = CoinMax(largestChange, fabs(chgUpper));
+    largestChange = std::max(largestChange, fabs(chgUpper));
     if (lower > -1.0e30 && upper < 1.0e30) {
       if (lower + maxTheta * chgLower > upper + maxTheta * chgUpper) {
         maxTheta = (upper - lower) / (chgLower - chgUpper);
@@ -4901,9 +5036,9 @@ ClpSimplexOther::computeRhsEtc(parametricsData &paramData)
     double lower = columnLower_[iColumn];
     double upper = columnUpper_[iColumn];
     double chgLower = lowerChange[iColumn];
-    largestChange = CoinMax(largestChange, fabs(chgLower));
+    largestChange = std::max(largestChange, fabs(chgLower));
     double chgUpper = upperChange[iColumn];
-    largestChange = CoinMax(largestChange, fabs(chgUpper));
+    largestChange = std::max(largestChange, fabs(chgUpper));
     if (lower > -1.0e30 && upper < 1.0e30) {
       if (lower + maxTheta * chgLower > upper + maxTheta * chgUpper) {
         maxTheta = (upper - lower) / (chgLower - chgUpper);
@@ -4928,7 +5063,7 @@ ClpSimplexOther::computeRhsEtc(parametricsData &paramData)
   // maxTheta already set
   /* given largest change element choose acceptable end
      be safe and make sure difference < 0.1*tolerance */
-  double acceptableDifference = 0.1 * primalTolerance_ / CoinMax(largestChange, 1.0);
+  double acceptableDifference = 0.1 * primalTolerance_ / std::max(largestChange, 1.0);
   paramData.acceptableMaxTheta = maxTheta - acceptableDifference;
 #endif
   return largestChange;
@@ -5006,7 +5141,7 @@ ClpSimplexOther::bestPivot(bool justColumns)
 #else
     columnArray_[1],
 #endif
-    rowArray_[3], acceptablePivot, NULL);
+    rowArray_[3], acceptablePivot);
   return bestPossiblePivot;
 }
 // Computes next theta and says if objective or bounds (0= bounds, 1 objective, -1 none)
@@ -5599,7 +5734,7 @@ int ClpSimplexOther::nextTheta(int /*type*/, double maxTheta, parametricsData &p
     toLower = true;
   }
 #endif
-  theta_ = CoinMax(theta_, 0.0);
+  theta_ = std::max(theta_, 0.0);
   if (theta_ > 1.0e-15) {
     // update solution
     for (int iRow = 0; iRow < number; iRow++) {
@@ -5961,7 +6096,9 @@ int ClpSimplexOther::expandKnapsack(int knapsackRow, int &numberOutput,
     buildStart[0] = 0;
   while (iStack >= 0) {
     if (sum >= minSize && sum <= maxSize) {
+#ifndef NDEBUG
       double checkSize = 0.0;
+#endif
       bool good = true;
       int nRow = 0;
       double obj = 0.0;
@@ -6054,9 +6191,11 @@ int ClpSimplexOther::expandKnapsack(int knapsackRow, int &numberOutput,
           }
           break;
         }
+#ifndef NDEBUG
         for (int j = 0; j < numJ; j++) {
           checkSize += stack[j] * size[j];
         }
+#endif
         assert(fabs(sum - checkSize) < 1.0e-3);
       }
       for (jRow = 0; jRow < nRow; jRow++) {
@@ -6121,7 +6260,9 @@ void ClpSimplexOther::cleanupAfterPostsolve()
   }
   double dualTolerance = dblParam_[ClpDualTolerance];
   double primalTolerance = dblParam_[ClpPrimalTolerance];
+#ifdef CLP_INVESTIGATE
   int numberCleaned = 0;
+#endif
   double maxmin = optimizationDirection_;
   for (int iColumn = 0; iColumn < numberColumns_; iColumn++) {
     double dualValue = reducedCost_[iColumn] * maxmin;
@@ -6180,7 +6321,9 @@ void ClpSimplexOther::cleanupAfterPostsolve()
           double addDual = dualValue / value;
           dual_[iRow] += addDual;
           reducedCost_[iColumn] = 0.0;
+#ifdef CLP_INVESTIGATE
           numberCleaned++;
+#endif
           break;
         }
       }
@@ -6306,7 +6449,7 @@ ClpSimplexOther::gubVersion(int *whichRows, int *whichColumns,
       }
     }
     if (!numberNormal) {
-      sprintf(message, "Putting back one gub row to make non-empty");
+      snprintf(message, sizeof(message), "Putting back one gub row to make non-empty");
       handler_->message(CLP_GENERAL2, messages_)
         << message << CoinMessageEol;
       rowIsGub[smallestGubRow] = -1;
@@ -6359,11 +6502,11 @@ ClpSimplexOther::gubVersion(int *whichRows, int *whichColumns,
           int iColumn = column[j];
           if (columnIsGub[iColumn] != -2) {
             double value = fabs(element[j]);
-            largest = CoinMax(value, largest);
-            smallest = CoinMin(value, smallest);
+            largest = std::max(value, largest);
+            smallest = std::min(value, smallest);
           }
         }
-        double scale = CoinMax(0.001, 1.0 / sqrt(largest * smallest));
+        double scale = std::max(0.001, 1.0 / sqrt(largest * smallest));
         scaleArray[i] = scale;
         if (lower[i] > -1.0e30)
           lower[i] *= scale;
@@ -6512,15 +6655,15 @@ ClpSimplexOther::gubVersion(int *whichRows, int *whichColumns,
         lowerValue += lowerColumn2[i];
       }
       assert(lowerValue < upper[iSet] + 1.0e-6);
-      double gap = CoinMax(0.0, upper[iSet] - lowerValue);
+      double gap = std::max(0.0, upper[iSet] - lowerValue);
       for (int i = gubStart[iSet]; i < gubStart[iSet + 1]; i++) {
         if (upperColumn2[i] < 1.0e30) {
-          upperColumn2[i] = CoinMin(upperColumn2[i],
+          upperColumn2[i] = std::min(upperColumn2[i],
             lowerColumn2[i] + gap);
         }
       }
     }
-    sprintf(message, "** Before adding matrix there are %d rows and %d columns",
+    snprintf(message, sizeof(message), "** Before adding matrix there are %d rows and %d columns",
       model2->numberRows(), model2->numberColumns());
     handler_->message(CLP_GENERAL2, messages_)
       << message << CoinMessageEol;
@@ -6655,7 +6798,7 @@ void ClpSimplexOther::setGubBasis(ClpSimplex &original, const int *whichRows,
       if (iSlack >= 0) {
         double value = newSolution[iSlack];
         if (value > 0.0) {
-          double down = CoinMin(gap, value);
+          double down = std::min(gap, value);
           gap -= down;
           sum -= down;
           newSolution[iSlack] = value - down;
@@ -6666,7 +6809,7 @@ void ClpSimplexOther::setGubBasis(ClpSimplex &original, const int *whichRows,
           int iColumn = whichColumns[j + numberNormal];
           if (newSolution[j] > 0.0 && iColumn < numberColumns) {
             double value = newSolution[j];
-            double down = CoinMin(gap, value);
+            double down = std::min(gap, value);
             gap -= down;
             sum -= down;
             newSolution[iSlack] = value - down;
@@ -6683,7 +6826,7 @@ void ClpSimplexOther::setGubBasis(ClpSimplex &original, const int *whichRows,
       if (iSlack >= 0) {
         double value = newSolution[iSlack];
         if (value < columnUpper[iSlack]) {
-          double up = CoinMin(gap, columnUpper[iSlack] - value);
+          double up = std::min(gap, columnUpper[iSlack] - value);
           gap -= up;
           sum += up;
           newSolution[iSlack] = value + up;
@@ -6694,7 +6837,7 @@ void ClpSimplexOther::setGubBasis(ClpSimplex &original, const int *whichRows,
           int iColumn = whichColumns[j + numberNormal];
           if (newSolution[j] < columnUpper[j] && iColumn < numberColumns) {
             double value = newSolution[j];
-            double up = CoinMin(gap, columnUpper[j] - value);
+            double up = std::min(gap, columnUpper[j] - value);
             gap -= up;
             sum += up;
             newSolution[iSlack] = value + up;
@@ -6754,7 +6897,7 @@ void ClpSimplexOther::setGubBasis(ClpSimplex &original, const int *whichRows,
             } else {
               // slack better anyway
               double move = value - columnLower[j];
-              newSolution[iSlack] = CoinMin(upperSet[i],
+              newSolution[iSlack] = std::min(upperSet[i],
                 newSolution[iSlack] + move);
               newSolution[j] = columnLower[j];
               for (CoinBigIndex k = columnStart[j];
@@ -6781,7 +6924,7 @@ void ClpSimplexOther::setGubBasis(ClpSimplex &original, const int *whichRows,
             move = (rowActivity[iRow] - rowUpper_[iRow]) / element[k];
           }
         }
-        move = CoinMin(move, newSolution[j] - columnLower[j]);
+        move = std::min(move, newSolution[j] - columnLower[j]);
         if (move) {
           newSolution[j] -= move;
           newSolution[iSlack] += move;
@@ -6990,7 +7133,7 @@ void ClpSimplexOther::getGubBasis(ClpSimplex &original, const int *whichRows,
   double *solution = primalColumnSolution();
   double *originalSolution = original.primalColumnSolution();
   int numberSets = gubMatrix->numberSets();
-  const double *cost = original.objective();
+  //const double *cost = original.objective();
   int lastOdd = gubMatrix->firstAvailable();
   //assert (numberTotalColumns==numberColumns+numberSlacks);
   int numberRows = original.numberRows();
@@ -7116,9 +7259,9 @@ void ClpSimplexOther::getGubBasis(ClpSimplex &original, const int *whichRows,
     }
   }
   delete[] numberKey;
-  double objValue = 0.0;
-  for (int i = 0; i < numberColumns; i++)
-    objValue += cost[i] * originalSolution[i];
+  //double objValue = 0.0;
+  //for (int i = 0; i < numberColumns; i++)
+  //  objValue += cost[i] * originalSolution[i];
   //printf("objective value is %g\n", objValue);
 }
 /*
@@ -7212,14 +7355,14 @@ int ClpSimplex::modifyCoefficientsAndPivot(int number,
       for (int i = 0; i < n; i++) {
         int inWhich = sort[i];
         int iSequence = which2[inWhich];
-        int nZeroNew = 0;
+#ifndef NDEBUG
         int nZeroOld = 0;
+#endif
         for (CoinBigIndex j = start[inWhich]; j < start[inWhich + 1]; j++) {
           int iRow = row[j];
           double newValue = newCoefficient[j];
           if (!newValue) {
             newValue = COIN_INDEXED_REALLY_TINY_ELEMENT;
-            nZeroNew++;
           }
           array[iRow] = newValue;
         }
@@ -7238,7 +7381,9 @@ int ClpSimplex::modifyCoefficientsAndPivot(int number,
               }
             }
           } else {
+#ifndef NDEBUG
             nZeroOld++;
+#endif
           }
         }
         assert(!nZeroOld);
@@ -7764,7 +7909,7 @@ int ClpSimplex::pivotResultPart2(int algorithm, int state)
     double checkValue = 1.0e-7;
     // if can't trust much and long way from optimal then relax
     if (largestPrimalError_ > 10.0)
-      checkValue = CoinMin(1.0e-4, 1.0e-8 * largestPrimalError_);
+      checkValue = std::min(1.0e-4, 1.0e-8 * largestPrimalError_);
     if (fabs(btranAlpha) < 1.0e-12 || fabs(alpha_) < 1.0e-12 || fabs(btranAlpha - alpha_) > checkValue * (1.0 + fabs(alpha_))) {
       handler_->message(CLP_DUAL_CHECK, messages_)
         << btranAlpha
@@ -7828,7 +7973,7 @@ int ClpSimplex::pivotResultPart2(int algorithm, int state)
     double movementOld = oldDualOut * directionOut_ / alpha_;
     // so objective should increase by fabs(dj)*movement
     // but we already have objective change - so check will be good
-    if (objectiveChange + fabs(movementOld * dualIn_) < -CoinMax(1.0e-5, 1.0e-12 * fabs(objectiveValue_))) {
+    if (objectiveChange + fabs(movementOld * dualIn_) < -std::max(1.0e-5, 1.0e-12 * fabs(objectiveValue_))) {
       if (handler_->logLevel() & 32)
         printf("movement %g, swap change %g, rest %g  * %g\n",
           objectiveChange + fabs(movement * dualIn_),
@@ -8192,7 +8337,9 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
 #endif
   if (tolerance < 0.0)
     tolerance = primalTolerance_;
+#ifdef PRINT_DUP
   int nPossible = 0;
+#endif
   int nDelete = 0;
 #if USE_HASH == 1
   hash *temp = reinterpret_cast< hash * >(weights);
@@ -8236,8 +8383,8 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
         CoinBigIndex start = rowStart[iThis];
         CoinBigIndex end = start + rowLength[iThis];
         if (rowLength[iThis] == rowLength[iLast]) {
-          nPossible++;
 #ifdef PRINT_DUP
+          nPossible++;
           char line[520], temp[50];
 #endif
           CoinBigIndex ishift = rowStart[iLast] - start;
@@ -8300,27 +8447,27 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
             if (!noOverlaps) {
               /* we always keep this and delete last 
 	       later maybe keep better formed one */
-              rlo2 = CoinMax(rlo1, rlo2);
+              rlo2 = std::max(rlo1, rlo2);
               if (rlo2 < -1.0e30)
                 rlo2 = -COIN_DBL_MAX;
-              rup2 = CoinMin(rup1, rup2);
+              rup2 = std::min(rup1, rup2);
               if (rup2 > 1.0e30)
                 rup2 = COIN_DBL_MAX;
             } else {
               /* keep better formed one */
               if (rlo2 >= rlo1 - 1.0e-8 && rup2 <= rup1 + 1.0e-8) {
                 // ok
-                rlo2 = CoinMax(rlo1, rlo2);
+                rlo2 = std::max(rlo1, rlo2);
                 if (rlo2 < -1.0e30)
                   rlo2 = -COIN_DBL_MAX;
-                rup2 = CoinMin(rup1, rup2);
+                rup2 = std::min(rup1, rup2);
                 if (rup2 > 1.0e30)
                   rup2 = COIN_DBL_MAX;
               } else if (rlo1 >= rlo2 - 1.0e-8 && rup1 <= rup2 + 1.0e-8) {
-                rlo2 = CoinMax(rlo1, rlo2);
+                rlo2 = std::max(rlo1, rlo2);
                 if (rlo2 < -1.0e30)
                   rlo2 = -COIN_DBL_MAX;
-                rup2 = CoinMin(rup1, rup2);
+                rup2 = std::min(rup1, rup2);
                 if (rup2 > 1.0e30)
                   rup2 = COIN_DBL_MAX;
                 // swap
@@ -8509,9 +8656,9 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
           // but allow for column bounds
           double currentValue = columnActivity_[iColumn];
           if (multiplier > 0.0)
-            distance = CoinMin(worst, columnUpper_[iColumn] - currentValue);
+            distance = std::min(worst, columnUpper_[iColumn] - currentValue);
           else
-            distance = CoinMin(worst, currentValue - columnLower_[iColumn]);
+            distance = std::min(worst, currentValue - columnLower_[iColumn]);
           distance /= fabs(value);
           for (CoinBigIndex i = columnStart[iColumn];
                i < columnStart[iColumn] + columnLength[iColumn]; i++) {
@@ -8561,7 +8708,7 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
         double value = rowActivity_[iRow];
         if (value > rowLower_[iRow] + primalTolerance_ && value < rowUpper_[iRow] - primalTolerance_) {
           setRowStatus(iRow, superBasic);
-          distance[numberLook] = CoinMin(value - rowLower_[iRow],
+          distance[numberLook] = std::min(value - rowLower_[iRow],
             rowUpper_[iRow] - value);
           whichRows[numberLook++] = iRow;
         }
@@ -8756,7 +8903,7 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
     char *put = where.putStuff;
     CoinBigIndex n = numberElements * static_cast< int >(sizeof(int) + sizeof(double)) + static_cast< int >(sizeInfo);
     if (n + (put - where.startStuff) > where.maxStuff) {
-      where.maxStuff += CoinMax(where.maxStuff / 2 + 10000, 2 * n);
+      where.maxStuff += std::max(where.maxStuff / 2 + 10000, 2 * n);
       char *temp = new char[where.maxStuff];
       long k = put - where.startStuff;
       memcpy(temp, where.startStuff, k);
@@ -9263,8 +9410,8 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
           nActions++;
           ClpCopyToMiniSave(stuff, reinterpret_cast< char * >(&thisInfo), sizeof(clpPresolveInfo14),
             nel, row + startCol, element + startCol);
-          newLower = CoinMax(newLower, columnLower[iColumn1]);
-          newUpper = CoinMin(newUpper, columnUpper[iColumn1]);
+          newLower = std::max(newLower, columnLower[iColumn1]);
+          newUpper = std::min(newUpper, columnUpper[iColumn1]);
           if (newLower > newUpper + primalTolerance_) {
             feasible = false;
             nChanged = -1;
@@ -9424,7 +9571,7 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
             rowLength[jRow] = rowLength2;
           }
           columnLength[iColumn1] = static_cast< int >(put - start);
-          lastElement = CoinMax(lastElement, put);
+          lastElement = std::max(lastElement, put);
 #endif
         }
       } else if (true && rowLower[iRow] == -COIN_DBL_MAX && rowUpper[iRow] == COIN_DBL_MAX) {
@@ -9567,7 +9714,7 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
               } else if (lower > newUpper - primalTolerance_) {
                 newLower = newUpper;
               } else {
-                newLower = CoinMax(lower, newLower);
+                newLower = std::max(lower, newLower);
               }
               jRowLower = iRow;
               coefficientLower = value;
@@ -9581,7 +9728,7 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
               } else if (upper < newLower + primalTolerance_) {
                 newUpper = newLower;
               } else {
-                newUpper = CoinMin(upper, newUpper);
+                newUpper = std::min(upper, newUpper);
               }
               jRowUpper = iRow;
               coefficientUpper = value;
@@ -9732,10 +9879,10 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
           double newValue;
           if (iFlag == 2) {
             // fix to upper
-            newValue = CoinMin(columnUpper[iColumn], SMALL_INFINITY);
+            newValue = std::min(columnUpper[iColumn], SMALL_INFINITY);
           } else {
             // fix to lower
-            newValue = CoinMax(columnLower[iColumn], -SMALL_INFINITY);
+            newValue = std::max(columnLower[iColumn], -SMALL_INFINITY);
           }
           columnActivity_[iColumn] = newValue;
 #if DEBUG_SOME > 0
@@ -10013,16 +10160,16 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
     char *rowType = new char[numberTotal];
     memset(rowType, 0, numberTotal);
     char *columnType = rowType + numberRows_;
-    double *rowLowerX = new double[3 * numberRows_ + 3 * numberColumns_ + CoinMax(numberRows_, numberColumns_)];
+    double *rowLowerX = new double[3 * numberRows_ + 3 * numberColumns_ + std::max(numberRows_, numberColumns_)];
     double *rowUpperX = rowLowerX + numberRows_;
     double *columnLowerX = rowUpperX + numberRows_;
     double *columnUpperX = columnLowerX + numberColumns_;
     double *objectiveX = columnUpperX + numberColumns_;
     double *tempElement = objectiveX + numberColumns_;
-    double *array = tempElement + CoinMax(numberRows_, numberColumns_);
+    double *array = tempElement + std::max(numberRows_, numberColumns_);
     memset(array, 0, numberRows_ * sizeof(double));
-    int *tempIndex = new int[CoinMax(numberRows_, numberColumns_) + 4 + 2 * numberColumns_ + numberRows_];
-    int *forward = tempIndex + CoinMax(numberRows_, numberColumns_) + 1;
+    int *tempIndex = new int[std::max(numberRows_, numberColumns_) + 4 + 2 * numberColumns_ + numberRows_];
+    int *forward = tempIndex + std::max(numberRows_, numberColumns_) + 1;
     int *backward = forward + numberColumns_ + 2;
     int *whichRows2 = backward + numberColumns_ + 1;
     for (int i = -1; i < numberColumns_; i++)
@@ -10150,7 +10297,7 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
     CoinBigIndex put = 0;
     for (int iColumn = 0; iColumn < numberColumns_; iColumn++) {
       if (columnType[iColumn] < 11) {
-        put += CoinMax(columnLength[iColumn], columnLengthY[iGet]);
+        put += std::max(columnLength[iColumn], columnLengthY[iGet]);
         iGet++;
       } else {
         put += columnLength[iColumn];
@@ -10175,7 +10322,7 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
       if (columnType[iColumn] < 11) {
         CoinBigIndex next = put + columnLengthY[iGet];
         if (spare >= 0)
-          next += CoinMax(columnLength[iColumn] - columnLengthY[iGet], 0) + spare;
+          next += std::max(columnLength[iColumn] - columnLengthY[iGet], 0) + spare;
         columnStatus[iColumn] = columnStatus2[iGet];
         columnActivity_[iColumn] = solution2[iGet];
         columnLowerX[iColumn] = columnLowerY[iGet];
@@ -10191,7 +10338,7 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
         columnType[iColumn] = 0;
         put = next;
       } else {
-        put += CoinMax(columnLength[iColumn] + spare, 0);
+        put += std::max(columnLength[iColumn] + spare, 0);
         columnActivity_[iColumn] = 0.0;
         columnType[iColumn] = 1;
         columnLengthX[iColumn] = 0;
@@ -10443,14 +10590,14 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
                   jRowLower, rowLowerX[jRowLower], rowActivity_[jRowLower],
                   rowUpperX[jRowLower]);
 #endif
-                double awayLower = CoinMin(rowActivity_[jRowLower] - rowLowerX[jRowLower],
+                double awayLower = std::min(rowActivity_[jRowLower] - rowLowerX[jRowLower],
                   rowUpperX[jRowLower] - rowActivity_[jRowLower]);
 #if DEBUG_SOME > 1
                 printf("upper row %d %g <= %g <= %g\n",
                   jRowUpper, rowLowerX[jRowUpper], rowActivity_[jRowUpper],
                   rowUpperX[jRowUpper]);
 #endif
-                double awayUpper = CoinMin(rowActivity_[jRowUpper] - rowLowerX[jRowUpper],
+                double awayUpper = std::min(rowActivity_[jRowUpper] - rowLowerX[jRowUpper],
                   rowUpperX[jRowUpper] - rowActivity_[jRowUpper]);
                 if (awayLower > awayUpper)
                   jRowLower = -1;
@@ -10759,8 +10906,8 @@ int ClpSimplex::outDuplicateRows(int numberLook, int *whichRows, bool noOverlaps
                 else if (dj2 > dualTolerance_ && solValue2 >= upperValue2 - primalTolerance_)
                   bad2 = dj2;
               }
-              if (CoinMax(bad1, bad2) < best) {
-                best = CoinMax(bad1, bad2);
+              if (std::max(bad1, bad2) < best) {
+                best = std::max(bad1, bad2);
                 choice = iTry;
               }
             }

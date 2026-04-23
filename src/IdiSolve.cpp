@@ -166,7 +166,9 @@ Idiot::IdiSolve(
 #else
   int nsolve = NSOLVE + 1; /* allow for null vector */
 #endif
+#ifdef FOUR_GOES
   int nflagged;
+#endif
   double *COIN_RESTRICT thetaX;
   double *COIN_RESTRICT djX;
   double *COIN_RESTRICT bX;
@@ -299,7 +301,7 @@ Idiot::IdiSolve(
           }
         }
         difference = rowupper[i] - rowlower[i];
-        difference = CoinMin(difference, 1.0e31);
+        difference = std::min(difference, 1.0e31);
         rowupper[i] = smaller;
         elemExtra[extraBlock] = value;
         solExtra[extraBlock] = (rowupper[i] - rowsol[i]) / value;
@@ -422,7 +424,7 @@ Idiot::IdiSolve(
           int chunk = (stop[itry] - start[itry] + FOUR_GOES - 1) / FOUR_GOES;
           startsX[itry][0] = start[itry];
           for (int i = 1; i < 5; i++)
-            startsX[itry][i] = CoinMin(stop[itry], startsX[itry][i - 1] + chunk);
+            startsX[itry][i] = std::min(stop[itry], startsX[itry][i - 1] + chunk);
         }
 #endif
       } else {
@@ -435,7 +437,7 @@ Idiot::IdiSolve(
           int chunk = (start[itry] - stop[itry] + FOUR_GOES - 1) / FOUR_GOES;
           startsX[itry][0] = start[itry];
           for (int i = 1; i < 5; i++)
-            startsX[itry][i] = CoinMax(stop[itry], startsX[itry][i - 1] - chunk);
+            startsX[itry][i] = std::max(stop[itry], startsX[itry][i - 1] - chunk);
         }
 #endif
       }
@@ -469,7 +471,7 @@ Idiot::IdiSolve(
             double *COIN_RESTRICT v = vX;
             double c;
 #ifdef FIT
-            int ntot = 0, nsign = 0, ngood = 0, mgood[4] = { 0, 0, 0, 0 };
+            //int ntot = 0, nsign = 0, ngood = 0, mgood[4] = { 0, 0, 0, 0 };
             double diff1, diff2, val0, val1, val2, newValue;
             CoinMemcpyN(colsol, ncols, history[HISTORY - 1]);
             CoinMemcpyN(solExtra, extraBlock, history[HISTORY - 1] + ncols);
@@ -486,20 +488,20 @@ Idiot::IdiSolve(
                   int k;
                   objvalue += value2 * cost[i];
 #ifdef FIT
-                  ntot++;
+                  //ntot++;
                   val0 = history[0][i];
                   val1 = history[1][i];
                   val2 = history[2][i];
                   diff1 = val0 - val1;
                   diff2 = val1 - val2;
                   if (diff1 * diff2 >= 0.0) {
-                    nsign++;
+                    //nsign++;
                     if (fabs(diff1) < fabs(diff2)) {
                       int ii = static_cast< int >(fabs(4.0 * diff1 / diff2));
                       if (ii == 4)
                         ii = 3;
-                      mgood[ii]++;
-                      ngood++;
+                      //mgood[ii]++;
+                      //ngood++;
                     }
                     if (fabs(diff1) < 0.75 * fabs(diff2)) {
                       newValue = val1 + (diff1 * diff2) / (diff2 - diff1);
@@ -686,7 +688,7 @@ Idiot::IdiSolve(
             if ((strategy & 64) != 0) {
               value = 10.0;
               for (k = 0; k < nsolve; k++) {
-                value = CoinMax(value, fabs(theta[k]));
+                value = std::max(value, fabs(theta[k]));
               }
               if (value > 10.0 && ((logLevel_ & 4) != 0)) {
                 printf("theta %g %g %g\n", theta[0], theta[1], theta[2]);
@@ -935,7 +937,9 @@ Idiot::IdiSolve(
         }
       }
       CoinMemcpyN(statusSave, ncols, statusWork);
+#ifdef FOUR_GOES
       nflagged = 0;
+#endif
     }
     nChange = 0;
     doFull = 0;
@@ -991,7 +995,7 @@ Idiot::IdiSolve(
             double value = colsol[icol];
             double djval = cost[icol];
             double djval2, value2;
-            double theta, a, b, c;
+            double theta, a, b/*, c*/;
             if (elemnt) {
               for (j = columnStart[icol]; j < columnStart[icol] + length[icol]; j++) {
                 int irow = row[j];
@@ -1028,13 +1032,13 @@ Idiot::IdiSolve(
                                         		}*/
                 a = 0.0;
                 b = 0.0;
-                c = 0.0;
+                //c = 0.0;
                 djval2 = cost[icol];
                 if (elemnt) {
                   for (j = columnStart[icol]; j < columnStart[icol] + length[icol]; j++) {
                     int irow = row[j];
                     double value = rowsol[irow];
-                    c += value * value;
+                    //c += value * value;
                     a += elemnt[j] * elemnt[j];
                     b += value * elemnt[j];
                   }
@@ -1042,14 +1046,14 @@ Idiot::IdiSolve(
                   for (j = columnStart[icol]; j < columnStart[icol] + length[icol]; j++) {
                     int irow = row[j];
                     double value = rowsol[irow];
-                    c += value * value;
+                    //c += value * value;
                     a += 1.0;
                     b += value;
                   }
                 }
                 a *= weight;
                 b = b * weight + 0.5 * djval2;
-                c *= weight;
+                //c *= weight;
                 /* solve */
                 theta = -b / a;
 #ifndef FOUR_GOES
@@ -1107,7 +1111,9 @@ Idiot::IdiSolve(
                 if (djval > djFlag) {
                   statusWork[icol] = 1;
 #ifndef FOUR_GOES
+#ifdef FOUR_GOES
                   nflagged++;
+#endif
 #else
                 nflaggedX[iPar]++;
 #endif
@@ -1123,7 +1129,7 @@ Idiot::IdiSolve(
 #ifdef FOUR_GOES
     for (int i = 0; i < FOUR_GOES; i++) {
       nChange += nChangeX[i];
-      maxDj = CoinMax(maxDj, maxDjX[i]);
+      maxDj = std::max(maxDj, maxDjX[i]);
       objvalue += objvalueX[i];
       nflagged += nflaggedX[i];
     }
@@ -1147,7 +1153,7 @@ Idiot::IdiSolve(
         double djval = costExtra[i];
         double djval2, value2;
         double element = elemExtra[i];
-        double theta, a, b, c;
+        double theta, a, b/*, c*/;
         int irow = rowExtra[i];
         djval -= element * pi[irow];
         /*printf("xxx iter %d extra %d djval %g value %g\n",
@@ -1162,21 +1168,21 @@ Idiot::IdiSolve(
           nChange++;
           a = 0.0;
           b = 0.0;
-          c = 0.0;
+          //c = 0.0;
           djval2 = costExtra[i];
           value = rowsol[irow];
-          c += value * value;
+          //c += value * value;
           a += element * element;
           b += element * value;
           a *= weight;
           b = b * weight + 0.5 * djval2;
-          c *= weight;
+          //c *= weight;
           /* solve */
           theta = -b / a;
           if (theta > 0.0) {
-            value2 = CoinMin(theta, upperExtra[i] - solExtra[i]);
+            value2 = std::min(theta, upperExtra[i] - solExtra[i]);
           } else {
-            value2 = CoinMax(theta, -solExtra[i]);
+            value2 = std::max(theta, -solExtra[i]);
           }
           solExtra[i] += value2;
           rowsol[irow] += element * value2;
@@ -1190,8 +1196,8 @@ Idiot::IdiSolve(
         djSave[i] = djSave[i - 1];
       }
       djSave[0] = maxDj;
-      largestDj = CoinMax(largestDj, maxDj);
-      smallestDj = CoinMin(smallestDj, maxDj);
+      largestDj = std::max(largestDj, maxDj);
+      smallestDj = std::min(smallestDj, maxDj);
       for (int i = DJTEST - 1; i > 0; i--) {
         maxDj += djSave[i];
       }

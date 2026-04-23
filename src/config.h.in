@@ -51,8 +51,14 @@
 /* Release version number of project. */
 #undef CLP_VERSION_RELEASE
 
+/* Git hash at configure time */
+#undef CLP_GIT_HASH
+
 /* Define to 1 if your C++ compiler doesn't accept -c and -o together. */
 #undef CXX_NO_MINUS_C_MINUS_O
+
+/* Define to 1 if you have the <arm_neon.h> header file. */
+#undef HAVE_ARM_NEON_H
 
 /* Define to 1 if you have the <cfloat> header file. */
 #undef HAVE_CFLOAT
@@ -69,13 +75,22 @@
 /* Define to 1 if you have the <float.h> header file. */
 #undef HAVE_FLOAT_H
 
+/* Define to 1 if you have the <fmaintrin.h> header file. */
+#undef HAVE_FMAINTRIN_H
+
 /* Define to 1 if you have the <ieeefp.h> header file. */
 #undef HAVE_IEEEFP_H
+
+/* Define to 1 if you have the <immintrin.h> header file. */
+#undef HAVE_IMMINTRIN_H
+
+/* Define to 1 if you have the <intrin.h> header file. */
+#undef HAVE_INTRIN_H
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `readline' library (-lreadline). */
+/* Define to 1 if you have the 'readline' library (-lreadline). */
 #undef HAVE_LIBREADLINE
 
 /* Define to 1 if you have the <math.h> header file. */
@@ -132,7 +147,7 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* Define to 1 if all of the C90 standard headers exist (not just the ones
+/* Define to 1 if all of the C89 standard headers exist (not just the ones
    required in a freestanding environment). This macro is provided for
    backward compatibility; new code need not use it. */
 #undef STDC_HEADERS

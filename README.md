@@ -5,7 +5,7 @@
 Projects such as this one are maintained by a small group of volunteers under
 the auspices of the non-profit [COIN-OR Foundation](https://www.coin-or.org)
 and we need your help! Please consider [sponsoring our
-activities](https://github.com/sponsors/coin-or).
+activities](https://github.com/sponsors/coin-or) or [volunteering](mailto:volunteer@coin-or.org) to help!
 
 [![Latest Release](https://img.shields.io/github/v/release/coin-or/Clp?sort=semver)](https://github.com/coin-or/Clp/releases)
 
@@ -78,7 +78,7 @@ are archived as part of Clp
      ```
    * Fedora/Redhat/CentOS:
      ```
-     $ sudo yum install  coin-or-Clp coin-or-Clp-devel
+     $ sudo dnf install  coin-or-Clp coin-or-Clp-devel
      ```
    * freebsd:
      ```
@@ -95,7 +95,7 @@ are archived as part of Clp
      $ brew install coin-or-tools/coinor/clp
      ```
 
-* *conda* (cross-platform, no Windows for now):
+* *conda* (cross-platform):
      ```
      $ conda install coin-or-clp
      ```
@@ -103,7 +103,7 @@ are archived as part of Clp
 Due to license incompatibilities, pre-compiled binaries lack some 
 functionality. If binaries are not available for your platform for the latest 
 version and you would like to request them to be built and posted, feel free 
-to let us know on the mailing list. 
+to open a discussion on Github. 
 
 ### Source
 
@@ -127,7 +127,7 @@ OS by default).
 
 ## BUILDING from source
 
-These quick start instructions assumes you are in a bash shell. 
+These quick start instructions assume you are in a bash shell. 
 
 ### Using `coinbrew`
 
@@ -220,7 +220,7 @@ Other ones can get complicated so start simple and work your way up.
 
 If you have `Doxygen` available, you can build a HTML documentation by typing
 
-`make doxygen-docs` 
+`make doxydoc` 
 
 in the build directory. If Clp was built via `coinbrew`, then the build
 directory will be `./build/Clp/master` by default. The doxygen documentation main file

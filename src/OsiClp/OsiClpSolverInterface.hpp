@@ -505,6 +505,9 @@ public:
   {
     integerInformation_[colIndex] = static_cast< char >(value);
   }
+  /// Return integer information array
+  inline const char * integerInformation() const
+  { return integerInformation_;}
   /// Get pointer to row-wise copy of matrix
   virtual const CoinPackedMatrix *getMatrixByRow() const;
 
@@ -701,6 +704,12 @@ public:
   /** Set the variables listed in indices (which is of length len) to be
       integer variables */
   virtual void setInteger(const int *indices, int len);
+  /** Modify model to deal with indicators.
+      startBigM are values in input.
+      If bigM > 0.0 then use that,
+      if < 0.0 use but try and improve */
+  virtual void modifyByIndicators(double startBigM=COIN_DBL_MAX,
+			  double bigM=-1.0e7);
   /// Number of SOS sets
   inline int numberSOS() const
   {
@@ -832,8 +841,8 @@ public:
   virtual void addRows(const int numrows,
     const CoinBigIndex *rowStarts, const int *columns, const double *element,
     const double *rowlb, const double *rowub);
-  ///
-  void modifyCoefficient(int row, int column, double newElement,
+  /// modify one coefficient
+  virtual void modifyCoefficient(int row, int column, double newElement,
     bool keepZero = false)
   {
     modelPtr_->modifyCoefficient(row, column, newElement, keepZero);
@@ -1365,6 +1374,14 @@ public:
   {
     continuousModel_ = model;
   }
+  /// Clean up smallModel
+  inline void zapSmallModel()
+  {
+    delete smallModel_;
+    smallModel_ = NULL;
+    delete[] spareArrays_;
+    spareArrays_ = NULL;
+  }
   //@}
 
 protected:
@@ -1620,6 +1637,47 @@ protected:
   bool inTrouble_;
   //@}
 };
+// switch off testing if OsiClp
+#ifndef CBC_OTHER_SOLVER
+#ifndef CBC_SKIP_CLP_TEST
+#define CBC_SKIP_CLP_TEST 1
+#endif
+#endif
+#if 0
+  /** Return pointer to OsiClpSolverInterface or NULL -
+      Changed to a static_cast for speed */
+  inline OsiClpSolverInterface * getClpSolver(OsiSolverInterface *solver)
+  {
+#ifndef CBC_OTHER_SOLVER
+    void * xxxxxx = solver;
+    long int yyyyyy = reinterpret_cast<long int>(xxxxxx)-0x2b0;
+    return reinterpret_cast<OsiClpSolverInterface *>(yyyyyy);
+#else
+    return dynamic_cast<OsiClpSolverInterface *>(solver);
+#endif
+  }
+  inline const OsiClpSolverInterface * getConstClpSolver(const OsiSolverInterface *solver)
+  {
+#ifndef CBC_OTHER_SOLVER
+    const void * xxxxxx = solver;
+    long int yyyyyy = reinterpret_cast<const long int>(xxxxxx)-0x2b0;
+    return reinterpret_cast<const OsiClpSolverInterface *>(yyyyyy);
+#else
+    return dynamic_cast<const OsiClpSolverInterface *>(solver);
+#endif
+  }
+#else
+  /** Return pointer to OsiClpSolverInterface or NULL -
+      Can be changed to a static_cast for speed */
+  inline OsiClpSolverInterface * getClpSolver(OsiSolverInterface *solver)
+  {
+    return dynamic_cast<OsiClpSolverInterface *>(solver);
+  }
+  inline const OsiClpSolverInterface * getConstClpSolver(const OsiSolverInterface *solver)
+  {
+    return dynamic_cast<const OsiClpSolverInterface *>(solver);
+  }
+#endif
 // So unit test can find out if NDEBUG set
 OSICLPLIB_EXPORT
 bool OsiClpHasNDEBUG();
