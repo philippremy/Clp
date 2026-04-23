@@ -914,7 +914,6 @@ void ClpParameters::addClpKwdParams() {
   parameters_[ClpParam::ABCWANTED]->appendKwd("eight");
   parameters_[ClpParam::ABCWANTED]->appendKwd("on");
   parameters_[ClpParam::ABCWANTED]->appendKwd("decide");
-  paramAboca.setFakeKeyWord(10);
 #endif
 
   parameters_[ClpParam::COMMANDPRINTLEVEL]->setup(

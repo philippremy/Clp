@@ -45,26 +45,21 @@ set(CLP_SOURCES
   src/ClpConstraintLinear.cpp
   src/ClpPEDualRowSteepest.cpp
   src/AbcSimplexFactorization.cpp
-  src/ClpCholeskyDense.cpp
   src/ClpSimplexNonlinear.cpp
   src/AbcMatrix.cpp
   src/ClpSolve.cpp
   src/ClpParam.cpp
   src/ClpPESimplex.cpp
-  src/ClpCholeskyTaucs.cpp
   src/ClpDualRowPivot.cpp
   src/ClpNetworkBasis.cpp
   src/ClpDualRowDantzig.cpp
-  src/ClpCholeskyPardiso.cpp
   src/ClpPlusMinusOneMatrix.cpp
-  src/ClpCholeskyBase.cpp
   src/CoinAbcBaseFactorization3.cpp
   src/CoinAbcFactorization3.cpp
   src/AbcSimplexPrimal.cpp
   src/ClpSolver.cpp
   src/ClpGubDynamicMatrix.cpp
   src/ClpPrimalColumnSteepest.cpp
-  src/ClpMain.cpp
   src/CoinAbcFactorization2.cpp
   src/CoinAbcBaseFactorization2.cpp
   src/AbcDualRowPivot.cpp
@@ -84,7 +79,6 @@ set(CLP_SOURCES
   src/ClpMatrixBase.cpp
   src/ClpObjective.cpp
   src/ClpDynamicMatrix.cpp
-  src/ClpCholeskyWssmpKKT.cpp
   src/CoinAbcSmallFactorization2.cpp
   src/ClpFactorization.cpp
   src/CoinAbcSmallFactorization3.cpp
@@ -95,7 +89,6 @@ set(CLP_SOURCES
   src/ClpPdco.cpp
   src/CoinAbcSmallFactorization1.cpp
   src/ClpHelperFunctions.cpp
-  src/ClpCholeskyUfl.cpp
   src/CoinAbcSmallFactorization4.cpp
   src/CoinAbcSmallFactorization5.cpp
   src/ClpLinearObjective.cpp
@@ -109,7 +102,6 @@ set(CLP_SOURCES
   src/ClpParamUtils.cpp
   src/CoinAbcOrderedFactorization5.cpp
   src/ClpPrimalColumnPivot.cpp
-  src/ClpCholeskyWssmp.cpp
   src/CoinAbcHelperFunctions.cpp
   src/CoinAbcOrderedFactorization4.cpp
   src/ClpPackedMatrix.cpp
@@ -121,7 +113,6 @@ set(CLP_SOURCES
   src/ClpConstraintQuadratic.cpp
   src/ClpEventHandler.cpp
   src/AbcDualRowDantzig.cpp
-  src/ClpCholeskyMumps.cpp
   src/ClpSimplexOther.cpp
   src/AbcDualRowSteepest.cpp
   src/ClpSimplexDual.cpp
@@ -146,7 +137,6 @@ set(CLP_SOURCES
 
 set(CLP_HEADERS
   src/ClpParamUtils.hpp
-  src/ClpCholeskyWssmp.hpp
   src/CoinAbcHelperFunctions.hpp
   src/ClpPrimalColumnPivot.hpp
   src/ClpPackedMatrix.hpp
@@ -158,7 +148,6 @@ set(CLP_HEADERS
   src/ClpEventHandler.hpp
   src/ClpConstraintQuadratic.hpp
   src/ClpSimplexPrimal.hpp
-  src/ClpCholeskyMumps.hpp
   src/AbcDualRowDantzig.hpp
   src/AbcDualRowSteepest.hpp
   src/ClpSimplexDual.hpp
@@ -173,7 +162,6 @@ set(CLP_HEADERS
   src/ClpPEPrimalColumnSteepest.hpp
   src/ClpDynamicMatrix.hpp
   src/ClpFactorization.hpp
-  src/ClpCholeskyWssmpKKT.hpp
   src/ClpPEDualRowDantzig.hpp
   src/CoinAbcCommon.hpp
   src/ClpDualRowSteepest.hpp
@@ -183,7 +171,6 @@ set(CLP_HEADERS
   src/ClpPdco.hpp
   src/AbcCommon.hpp
   src/ClpHelperFunctions.hpp
-  src/ClpCholeskyUfl.hpp
   src/ClpLinearObjective.hpp
   src/ClpPresolve.hpp
   src/ClpParameters.hpp
@@ -213,22 +200,18 @@ set(CLP_HEADERS
   src/AbcPrimalColumnSteepest.hpp
   src/AbcWarmStart.hpp
   src/AbcSimplexFactorization.hpp
-  src/ClpCholeskyDense.hpp
   src/ClpSimplexNonlinear.hpp
   src/AbcMatrix.hpp
   src/ClpSolve.hpp
   src/ClpParam.hpp
   src/ClpPESimplex.hpp
   src/ClpModelParameters.hpp
-  src/ClpCholeskyTaucs.hpp
   src/ClpDualRowPivot.hpp
   src/Clp_C_Interface.h
   src/ClpPrimalQuadraticDantzig.hpp
   src/ClpNetworkBasis.hpp
-  src/ClpCholeskyPardiso.hpp
   src/ClpPlusMinusOneMatrix.hpp
   src/ClpDualRowDantzig.hpp
-  src/ClpCholeskyBase.hpp
   src/Idiot.hpp
   src/MyEventHandler.hpp
   src/MyMessageHandler.hpp
@@ -283,6 +266,7 @@ endif()
 
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
+    CLP_HAS_ABC
     HAVE_CMATH
     HAVE_CFLOAT
     $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>

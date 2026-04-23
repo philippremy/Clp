@@ -3,14 +3,13 @@
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 /*
   Authors
-  
+
   John Forrest
-  
+
 */
 #ifndef AbcSimplex_H
 #define AbcSimplex_H
 
-#include <iostream>
 #include <cfloat>
 
 #include "ClpModel.hpp"
