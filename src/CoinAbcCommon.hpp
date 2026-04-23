@@ -69,9 +69,23 @@ void instrument_end();
 void instrument_end_and_adjust(double factor);
 #endif
 #ifndef __BYTE_ORDER
-#include <endian.h>
+#if defined(__BYTE_ORDER__)
+  #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+      #define COIN_LITTLE_ENDIAN 1
+  #else
+      #error __BYTE_ORDER__ does not match a standard endian, pick a side
+  #endif
+  #elif __LITTLE_ENDIAN__ || _LITTLE_ENDIAN
+      #define COIN_LITTLE_ENDIAN 1
+  #elif __x86_64 || __x86_64__ || _M_X64 || __i386 || __i386__ || _M_IX86
+      #define COIN_LITTLE_ENDIAN 1
+  #elif _M_ARM || _M_ARM64 || _M_ARM64EC  // MSVC ARM Support
+      #define COIN_LITTLE_ENDIAN 1
+  #else
+      #error Unable to determine target endianness, please file a bug report
+  #endif
 #endif
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#ifdef COIN_LITTLE_ENDIAN
 #define ABC_INTEL
 #endif
 #if COIN_BIG_DOUBLE == 1
@@ -85,7 +99,7 @@ void instrument_end_and_adjust(double factor);
 #define CoinFabs(x) fabs(x)
 #endif
 #ifdef USE_TEST_ZERO
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#ifdef COIN_LITTLE_ENDIAN
 #define TEST_DOUBLE_NONZERO(x) ((reinterpret_cast< int * >(&x))[1] != 0)
 #else
 #define TEST_DOUBLE_NONZERO(x) ((reinterpret_cast< int * >(&x))[0] != 0)
@@ -102,7 +116,7 @@ void instrument_end_and_adjust(double factor);
 #define TEST_INT_NONZERO(x) (true)
 #endif
 #ifdef USE_TEST_REALLY_ZERO
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#ifdef COIN_LITTLE_ENDIAN
 #define TEST_DOUBLE_REALLY_NONZERO(x) ((reinterpret_cast< int * >(&x))[1] != 0)
 #else
 #define TEST_DOUBLE_REALLY_NONZERO(x) ((reinterpret_cast< int * >(&x))[0] != 0)
@@ -111,7 +125,7 @@ void instrument_end_and_adjust(double factor);
 #define TEST_DOUBLE_REALLY_NONZERO(x) (x)
 #endif
 #ifdef USE_TEST_ZERO_REGISTER
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#ifdef COIN_LITTLE_ENDIAN
 #define TEST_DOUBLE_NONZERO_REGISTER(x) ((reinterpret_cast< int * >(&x))[1] != 0)
 #else
 #define TEST_DOUBLE_NONZERO_REGISTER(x) ((reinterpret_cast< int * >(&x))[0] != 0)
@@ -124,7 +138,7 @@ void instrument_end_and_adjust(double factor);
 #ifdef USE_FIXED_ZERO_TOLERANCE
 // 3d400000... 0.5**43 approx 1.13687e-13
 #ifdef USE_TEST_LESS_TOLERANCE
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#ifdef COIN_LITTLE_ENDIAN
 #define TEST_LESS_THAN_TOLERANCE(x) ((reinterpret_cast< int * >(&x))[1] & 0x7ff00000 < 0x3d400000)
 #define TEST_LESS_THAN_UPDATE_TOLERANCE(x) ((reinterpret_cast< int * >(&x))[1] & 0x7ff00000 < 0x3d400000)
 #else
@@ -136,7 +150,7 @@ void instrument_end_and_adjust(double factor);
 #define TEST_LESS_THAN_UPDATE_TOLERANCE(x) (fabs(x) < pow(0.5, 43))
 #endif
 #ifdef USE_TEST_LESS_TOLERANCE_REGISTER
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#ifdef COIN_LITTLE_ENDIAN
 #define TEST_LESS_THAN_TOLERANCE_REGISTER(x) ((reinterpret_cast< int * >(&x))[1] & 0x7ff00000 < 0x3d400000)
 #else
 #define TEST_LESS_THAN_TOLERANCE_REGISTER(x) ((reinterpret_cast< int * >(&x))[0] & 0x7ff00000 < 0x3d400000)
@@ -150,7 +164,7 @@ void instrument_end_and_adjust(double factor);
 #endif
 #if COIN_BIG_DOUBLE != 1
 typedef unsigned int CoinExponent;
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#ifdef COIN_LITTLE_ENDIAN
 #define ABC_EXPONENT(x) ((reinterpret_cast< int * >(&x))[1] & 0x7ff00000)
 #else
 #define ABC_EXPONENT(x) ((reinterpret_cast< int * >(&x))[0] & 0x7ff00000)
@@ -299,7 +313,7 @@ public:
       from basis until largest infeasibility < allowedInfeasibility.
       if allowedInfeasibility>= incomingInfeasibility this is
       always possible altough you may end up with an all slack basis.
-      
+
       Defaults are 1.0,10.0
   */
   double incomingInfeasibility_;
