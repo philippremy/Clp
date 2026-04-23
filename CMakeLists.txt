@@ -307,7 +307,7 @@ install(
 configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/ClpConfig.cmake"
-  INSTALL_DESTINATION "${OSI_INSTALL_CMAKEDIR}"
+  INSTALL_DESTINATION "${CLP_INSTALL_CMAKEDIR}"
   PATH_VARS
     CLP_INSTALL_INCLUDEDIR
     CMAKE_INSTALL_LIBDIR
@@ -323,5 +323,11 @@ install(
   FILES
     "${CMAKE_CURRENT_BINARY_DIR}/ClpConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/ClpConfigVersion.cmake"
+  DESTINATION "${CLP_INSTALL_CMAKEDIR}"
+)
+
+install(
+  EXPORT      ClpTargets
+  NAMESPACE   Coin::
   DESTINATION "${CLP_INSTALL_CMAKEDIR}"
 )
